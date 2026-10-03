@@ -1,13 +1,14 @@
-<?php
-$serverName = "localhost"; 
-$database = "my_gaming";
+<?php require_once 'db.php';
 
-try {
-    $conn = new PDO("sqlsrv:server=$serverName;Database=$database", null, null);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    echo "<h2>база данных подключена</h2>";
-    
-} catch (PDOException $e) {
-    echo "<h2>база данных НЕ подключена:</h2>";
-    echo "<p style='color:red;'>" . $e->getMessage() . "</p>";
-}
+$first_sql_query = 'SELECT 
+                        g.id AS game_id,
+                        g.title AS game_title,
+                        s.game_status,
+                        gn.genre
+                    FROM games g
+                    INNER JOIN game_statuses s ON g.status_id = s.id
+                    INNER JOIN genres gn ON g.genre_id = gn.id;';
+
+$sql_result = $connection->query($first_sql_query);
+$my_games = $sql_result->fetchAll(PDO::FETCH_ASSOC);
+print_r($my_games);
