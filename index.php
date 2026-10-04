@@ -10,5 +10,20 @@ $first_sql_query = 'SELECT
                     INNER JOIN genres gn ON g.genre_id = gn.id;';
 
 $sql_result = $connection->query($first_sql_query);
-$my_games = $sql_result->fetchAll(PDO::FETCH_ASSOC);
-print_r($my_games);
+$my_games = $sql_result->fetchAll(PDO::FETCH_ASSOC); ?>
+
+<table border="1">
+    <caption>games</caption>
+    <tr>
+        <th>title</th>
+        <th>genre</th>
+        <th>status</th>
+    </tr>
+    <?php foreach ($my_games as $game): ?>
+            <tr>
+            <td><?= $game['game_title'] ?></td>
+            <td><?= $game['genre'] ?></td>
+            <td><?= $game['game_status'] ?></td>
+            </tr>
+    <?php endforeach; ?>
+</table>
