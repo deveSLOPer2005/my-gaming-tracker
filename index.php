@@ -19,7 +19,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'update') {
     $edited_status = $_POST['status_select'];
     $edit_id = $_POST['game_id'];
     $edit_sql_query = "UPDATE games SET title = '$edited_game', genre_id = $edited_genre, status_id = $edited_status WHERE id = $edit_id;";
-    $add = $connection->query($edit_sql_query);
+    $edit = $connection->query($edit_sql_query);
 }
 
 if (isset($_GET['delete_id']) && $_GET['delete_id'] !== '') {
