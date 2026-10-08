@@ -7,32 +7,45 @@ if (isset($_GET['status_choice']) && $_GET['status_choice'] !== '') {
 
 if (isset($_POST['action']) && $_POST['action'] === 'create') {
     $new_game = $_POST['game_name'];
-    $new_genre = $_POST['genre_select'];
-    $new_status = $_POST['status_select'];
-    $add_sql_query = "INSERT INTO games(title, genre_id, status_id) values ('$new_game', $new_genre, $new_status);";
-    $add = $connection->query($add_sql_query);
+    $new_genre = (int)$_POST['genre_select'];
+    $new_status = (int)$_POST['status_select'];
+    $add_sql_query = "INSERT INTO games (title, genre_id, status_id) VALUES (:title, :genre_id, :status_id);";
+    $stmt = $connection->prepare($add_sql_query);
+    $stmt->execute([
+        'title' => $new_game,
+        'genre_id' => $new_genre,
+        'status_id' => $new_status
+    ]);
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'update') {
     $edited_game = $_POST['game_name'];
-    $edited_genre = $_POST['genre_select'];
-    $edited_status = $_POST['status_select'];
-    $edit_id = $_POST['game_id'];
-    $edit_sql_query = "UPDATE games SET title = '$edited_game', genre_id = $edited_genre, status_id = $edited_status WHERE id = $edit_id;";
-    $edit = $connection->query($edit_sql_query);
+    $edited_genre = (int)$_POST['genre_select'];
+    $edited_status = (int)$_POST['status_select'];
+    $edit_id = (int)$_POST['game_id'];
+    $edit_sql_query = "UPDATE games SET title = :title, genre_id = :genre_id, status_id = :status_id WHERE id = :id;";
+    $stmt = $connection->prepare($edit_sql_query);
+    $stmt->execute([
+        'title' => $edited_game,
+        'genre_id' => $edited_genre,
+        'status_id' => $edited_status,
+        'id' => $edit_id
+    ]);
 }
 
 if (isset($_GET['delete_id']) && $_GET['delete_id'] !== '') {
-    $delete_id = $_GET['delete_id'];
-    $delete_sql_query = "DELETE FROM games WHERE id = $delete_id;";
-    $delete = $connection->query($delete_sql_query);
+    $delete_id = (int)$_GET['delete_id'];
+    $delete_sql_query = "DELETE FROM games WHERE id = :id;";
+    $stmt = $connection->prepare($delete_sql_query);
+    $stmt->execute(['id' => $delete_id]);
 }
 
-if (isset ($_GET['edit_id'])) {
-    $edit_id = $_GET['edit_id'];
-    $data_edit_query = "SELECT * FROM games WHERE id = $edit_id;";
-    $data_edit = $connection->query($data_edit_query);
-    $games_to_edit = $data_edit->fetch(PDO::FETCH_ASSOC);
+if (isset($_GET['edit_id'])) {
+    $edit_id = (int)$_GET['edit_id'];
+    $data_edit_query = "SELECT * FROM games WHERE id = :id;";
+    $stmt = $connection->prepare($data_edit_query);
+    $stmt->execute(['id' => $edit_id]);
+    $games_to_edit = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 $connection_sql_query = "SELECT 
@@ -44,13 +57,15 @@ $connection_sql_query = "SELECT
                     INNER JOIN game_statuses s ON g.status_id = s.id
                     INNER JOIN genres gn ON g.genre_id = gn.id";
 
-if ($filter != 'all') {
-    $connection_sql_query .= " WHERE s.game_status = '$filter';";
+$params = [];
+if ($filter !== 'all') {
+    $connection_sql_query .= " WHERE s.game_status = :status;";
+    $params['status'] = $filter;
 }
-    else $connection_sql_query .= ";";
 
-$sql_result = $connection->query($connection_sql_query);
-$my_games = $sql_result->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $connection->prepare($connection_sql_query);
+$stmt->execute($params);
+$my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -60,14 +75,15 @@ $my_games = $sql_result->fetchAll(PDO::FETCH_ASSOC);
         <th>title</th>
         <th>genre</th>
         <th>status</th>
+        <th colspan="2">actions</th>
     </tr>
     <?php foreach ($my_games as $game): ?>
             <tr>
-            <td><?= $game['game_title'] ?></td>
-            <td><?= $game['genre'] ?></td>
-            <td><?= $game['game_status'] ?></td>
-            <td><a href="index.php?delete_id=<?= $game['game_id'] ?>">delete</a></td>
-            <td><a href="index.php?edit_id=<?= $game['game_id'] ?>">edit</a></td>
+            <td><?= htmlspecialchars($game['game_title'], ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($game['genre'], ENT_QUOTES, 'UTF-8') ?></td>
+            <td><?= htmlspecialchars($game['game_status'], ENT_QUOTES, 'UTF-8') ?></td>
+            <td><a href="index.php?delete_id=<?= (int)$game['game_id'] ?>">delete</a></td>
+            <td><a href="index.php?edit_id=<?= (int)$game['game_id'] ?>">edit</a></td>
             </tr>
     <?php endforeach; ?>
 </table>
@@ -86,16 +102,17 @@ $my_games = $sql_result->fetchAll(PDO::FETCH_ASSOC);
 </form>
 
 <form action="index.php" method="post" style="margin-top: 20px;">
-        <label for='game_form'>fill the form. </label>
+        <label for='game_name_id'>fill the form. </label>
 
         <input type="hidden" name="action" value="<?= isset($_GET['edit_id']) ? 'update' : 'create' ?>">
         <?php if (isset($_GET['edit_id'])): ?>
-        <input type="hidden" name="game_id" value="<?= $_GET['edit_id'] ?>">
+        <input type="hidden" name="game_id" value="<?= (int)$_GET['edit_id'] ?>">
         <?php endif; ?>
 
-        <label for='game_input'>game name: </label>
-        <input type="text" id="game_name_id" name="game_name" value = "<?= isset($games_to_edit) ? $games_to_edit['title'] : '' ?>">
-        <label for='genre_input'>genre: </label>
+        <label for='game_name_id'>game name: </label>
+        <input type="text" id="game_name_id" name="game_name" value="<?= isset($games_to_edit) ? htmlspecialchars($games_to_edit['title'], ENT_QUOTES, 'UTF-8') : '' ?>">
+        
+        <label for='genre_select_id'>genre: </label>
         <select id='genre_select_id' name='genre_select'>
                 <option value="" disabled selected>-</option>
                 <option value='1' <?= (isset($games_to_edit) && $games_to_edit['genre_id'] == 1) ? 'selected' : '' ?>>MMORPG</option>
@@ -104,7 +121,8 @@ $my_games = $sql_result->fetchAll(PDO::FETCH_ASSOC);
                 <option value='4' <?= (isset($games_to_edit) && $games_to_edit['genre_id'] == 4) ? 'selected' : '' ?>>sandbox</option>
                 <option value='5' <?= (isset($games_to_edit) && $games_to_edit['genre_id'] == 5) ? 'selected' : '' ?>>gacha</option>
         </select>
-        <label for='status_input'>status: </label>
+        
+        <label for='status_select_id'>status: </label>
         <select id='status_select_id' name='status_select'>
                 <option value="" disabled selected>-</option>
                 <option value='1' <?= (isset($games_to_edit) && $games_to_edit['status_id'] == 1) ? 'selected' : '' ?>>playing</option>
