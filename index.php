@@ -16,6 +16,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'create') {
         'genre_id' => $new_genre,
         'status_id' => $new_status
     ]);
+    header("Location: index.php");
+    exit;
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'update') {
@@ -31,13 +33,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'update') {
         'status_id' => $edited_status,
         'id' => $edit_id
     ]);
+    header("Location: index.php");
+    exit;
 }
 
-if (isset($_GET['delete_id']) && $_GET['delete_id'] !== '') {
-    $delete_id = (int)$_GET['delete_id'];
+if (isset($_POST['action']) && $_POST['action'] === 'delete') {
+    $delete_id = (int)$_POST['delete_id'];
     $delete_sql_query = "DELETE FROM games WHERE id = :id;";
     $stmt = $connection->prepare($delete_sql_query);
     $stmt->execute(['id' => $delete_id]);
+    header("Location: index.php");
+    exit;
 }
 
 if (isset($_GET['edit_id'])) {
@@ -82,7 +88,13 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <td><?= htmlspecialchars($game['game_title'], ENT_QUOTES, 'UTF-8') ?></td>
             <td><?= htmlspecialchars($game['genre'], ENT_QUOTES, 'UTF-8') ?></td>
             <td><?= htmlspecialchars($game['game_status'], ENT_QUOTES, 'UTF-8') ?></td>
-            <td><a href="index.php?delete_id=<?= (int)$game['game_id'] ?>">delete</a></td>
+            <td>
+            <form action="index.php" method="post" style="display:inline;">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="delete_id" value="<?= (int)$game['game_id'] ?>">
+            <button type="submit">delete</button>
+            </form>
+            </td>
             <td><a href="index.php?edit_id=<?= (int)$game['game_id'] ?>">edit</a></td>
             </tr>
     <?php endforeach; ?>
@@ -110,7 +122,7 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php endif; ?>
 
         <label for='game_name_id'>game name: </label>
-        <input type="text" id="game_name_id" name="game_name" value="<?= isset($games_to_edit) ? htmlspecialchars($games_to_edit['title'], ENT_QUOTES, 'UTF-8') : '' ?>">
+        <input type="text" id="game_name_id" name="game_name" value="<?= isset($games_to_edit) ? htmlspecialchars($games_to_edit['title'], ENT_QUOTES, 'UTF-8') : '' ?>" required>
         
         <label for='genre_select_id'>genre: </label>
         <select id='genre_select_id' name='genre_select'>
