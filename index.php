@@ -7,13 +7,30 @@ if (isset($_GET['status_choice']) && $_GET['status_choice'] !== '') {
 
 if (isset($_POST['action']) && $_POST['action'] === 'create') {
     $new_game = $_POST['game_name'];
-    $new_genre = (int)$_POST['genre_select'];
+    $genre_input = trim($_POST['genre_name']);
+    $genre_test_query = "SELECT id FROM genres WHERE genre = :genre;";
+    $stmt = $connection->prepare($genre_test_query);
+    $stmt->execute([
+        'genre' => $genre_input,
+    ]);
+    $genres = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($genres) {
+        $genre_id = $genres['id'];
+    }
+    else {
+        $new_genre_query = "INSERT INTO genres (genre) VALUES (:genre)";
+        $stmt = $connection->prepare($new_genre_query);
+        $stmt->execute([
+        'genre' => $genre_input,
+    ]);
+    $genre_id = $connection->lastInsertId();
+    }
     $new_status = (int)$_POST['status_select'];
     $add_sql_query = "INSERT INTO games (title, genre_id, status_id) VALUES (:title, :genre_id, :status_id);";
     $stmt = $connection->prepare($add_sql_query);
     $stmt->execute([
         'title' => $new_game,
-        'genre_id' => $new_genre,
+        'genre_id' => $genre_id,
         'status_id' => $new_status
     ]);
     header("Location: index.php");
@@ -22,14 +39,31 @@ if (isset($_POST['action']) && $_POST['action'] === 'create') {
 
 if (isset($_POST['action']) && $_POST['action'] === 'update') {
     $edited_game = $_POST['game_name'];
-    $edited_genre = (int)$_POST['genre_select'];
+    $genre_input = trim($_POST['genre_name']);
+    $genre_test_query = "SELECT id FROM genres WHERE genre = :genre;";
+    $stmt = $connection->prepare($genre_test_query);
+    $stmt->execute([
+        'genre' => $genre_input,
+    ]);
+    $genres = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($genres) {
+        $genre_id = $genres['id'];
+    }
+    else {
+        $new_genre_query = "INSERT INTO genres (genre) VALUES (:genre)";
+        $stmt = $connection->prepare($new_genre_query);
+        $stmt->execute([
+        'genre' => $genre_input,
+    ]);
+    $genre_id = $connection->lastInsertId();
+    }
     $edited_status = (int)$_POST['status_select'];
     $edit_id = (int)$_POST['game_id'];
     $edit_sql_query = "UPDATE games SET title = :title, genre_id = :genre_id, status_id = :status_id WHERE id = :id;";
     $stmt = $connection->prepare($edit_sql_query);
     $stmt->execute([
         'title' => $edited_game,
-        'genre_id' => $edited_genre,
+        'genre_id' => $genre_id,
         'status_id' => $edited_status,
         'id' => $edit_id
     ]);
@@ -125,14 +159,7 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <input type="text" id="game_name_id" name="game_name" value="<?= isset($games_to_edit) ? htmlspecialchars($games_to_edit['title'], ENT_QUOTES, 'UTF-8') : '' ?>" required>
         
         <label for='genre_select_id'>genre: </label>
-        <select id='genre_select_id' name='genre_select'>
-                <option value="" disabled selected>-</option>
-                <option value='1' <?= (isset($games_to_edit) && $games_to_edit['genre_id'] == 1) ? 'selected' : '' ?>>MMORPG</option>
-                <option value='2' <?= (isset($games_to_edit) && $games_to_edit['genre_id'] == 2) ? 'selected' : '' ?>>co-op survival</option>
-                <option value='3' <?= (isset($games_to_edit) && $games_to_edit['genre_id'] == 3) ? 'selected' : '' ?>>open-world RPG</option>
-                <option value='4' <?= (isset($games_to_edit) && $games_to_edit['genre_id'] == 4) ? 'selected' : '' ?>>sandbox</option>
-                <option value='5' <?= (isset($games_to_edit) && $games_to_edit['genre_id'] == 5) ? 'selected' : '' ?>>gacha</option>
-        </select>
+        <input type="text" name="genre_name" required>
         
         <label for='status_select_id'>status: </label>
         <select id='status_select_id' name='status_select'>
