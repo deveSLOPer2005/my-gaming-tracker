@@ -139,10 +139,10 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <select id='status' name='status_choice'>
     <option value="" disabled selected>-</option>
     <option value="all">all</option>
-    <option value='playing'>playing</option>
-    <option value='in plans'>in plans</option>
-    <option value='abandoned'>abandoned</option>
-    <option value='completed'>completed</option>
+    <option value='playing' <?= ($filter === 'playing') ? 'selected' : '' ?>>playing</option>
+    <option value='in plans' <?= ($filter === 'in plans') ? 'selected' : '' ?>>in plans</option>
+    <option value='abandoned' <?= ($filter === 'abandoned') ? 'selected' : '' ?>>abandoned</option>
+    <option value='completed' <?= ($filter === 'completed') ? 'selected' : '' ?>>completed</option>
 </select>
 <button type="submit">submit</button>
 </form>
