@@ -137,8 +137,7 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <form action="index.php" method="get" style="margin-top: 20px;">
 <label for='status'>choose status</label>
 <select id='status' name='status_choice'>
-    <option value="" disabled selected>-</option>
-    <option value="all">all</option>
+    <option value="all" <?= ($filter === 'all') ? 'selected' : '' ?>>all</option>
     <option value='playing' <?= ($filter === 'playing') ? 'selected' : '' ?>>playing</option>
     <option value='in plans' <?= ($filter === 'in plans') ? 'selected' : '' ?>>in plans</option>
     <option value='abandoned' <?= ($filter === 'abandoned') ? 'selected' : '' ?>>abandoned</option>
