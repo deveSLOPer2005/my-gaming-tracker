@@ -109,6 +109,8 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
+<link rel="stylesheet" href="water.css">
+
 <table border="1">
     <caption>games</caption>
     <tr>
