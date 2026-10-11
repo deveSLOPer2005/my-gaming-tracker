@@ -82,7 +82,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'delete') {
 
 if (isset($_GET['edit_id'])) {
     $edit_id = (int)$_GET['edit_id'];
-    $data_edit_query = "SELECT * FROM games WHERE id = :id;";
+    $data_edit_query = "SELECT g.*, gn.genre AS genre_name
+                        from games g
+                        INNER JOIN genres gn ON g.genre_id = gn.id
+                        WHERE g.id = :id;";
     $stmt = $connection->prepare($data_edit_query);
     $stmt->execute(['id' => $edit_id]);
     $games_to_edit = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -160,7 +163,7 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <input type="text" id="game_name_id" name="game_name" value="<?= isset($games_to_edit) ? htmlspecialchars($games_to_edit['title'], ENT_QUOTES, 'UTF-8') : '' ?>" required>
         
         <label for='genre_select_id'>genre: </label>
-        <input type="text" name="genre_name" required>
+        <input type="text" id="genre_name_id" name="genre_name" value="<?= isset($games_to_edit) ? htmlspecialchars($games_to_edit['genre_name'], ENT_QUOTES, 'UTF-8') : '' ?>" required>
         
         <label for='status_select_id'>status: </label>
         <select id='status_select_id' name='status_select'>
