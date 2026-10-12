@@ -91,21 +91,37 @@ if (isset($_GET['edit_id'])) {
     $games_to_edit = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+$page = 1;
+if (isset($_GET['page']) && (int)$_GET['page'] > 0 ) {
+    $page = (int)$_GET['page'];
+}
+$limit = 3;
+$offset = ($page - 1) * $limit;
+
 $connection_sql_query = "SELECT 
                         g.id AS game_id,
                         g.title AS game_title,
                         s.game_status,
                         gn.genre
-                    FROM games g
-                    INNER JOIN game_statuses s ON g.status_id = s.id
-                    INNER JOIN genres gn ON g.genre_id = gn.id";
+                        FROM games g
+                        INNER JOIN game_statuses s ON g.status_id = s.id
+                        INNER JOIN genres gn ON g.genre_id = gn.id";
+
+$page_count_query = "SELECT COUNT(*) FROM games g 
+                    INNER JOIN game_statuses s ON g.status_id = s.id";
 
 $params = [];
 if ($filter !== 'all') {
-    $connection_sql_query .= " WHERE s.game_status = :status;";
+    $connection_sql_query .= " WHERE s.game_status = :status";
+    $page_count_query .= " WHERE s.game_status = :status";
     $params['status'] = $filter;
 }
 
+$stmt_count = $connection->prepare($page_count_query);
+$stmt_count->execute($params);
+$count_games = $stmt_count->fetchColumn();
+$count_pages = ceil($count_games / $limit); 
+$connection_sql_query .= " ORDER BY g.id OFFSET $offset ROWS FETCH NEXT $limit ROWS ONLY;";
 $stmt = $connection->prepare($connection_sql_query);
 $stmt->execute($params);
 $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
