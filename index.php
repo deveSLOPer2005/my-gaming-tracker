@@ -155,6 +155,21 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endforeach; ?>
 </table>
 
+<?php
+// Если страница всего одна, кнопочки выводить не нужно
+if ($count_pages > 1) {
+    
+    // Цикл создаст ссылки от 1 до максимального количества страниц
+    for ($i = 1; $i <= $count_pages; $i++) {
+        
+        // Выводим простую ссылку, разделяя цифры пробелами
+        echo "<a href='index.php?page=$i&status_choice=$filter'> $i </a> ";
+        
+    }
+    
+}
+?>
+
 <form action="index.php" method="get" style="margin-top: 20px;">
 <label for='status'>choose status</label>
 <select id='status' name='status_choice'>
