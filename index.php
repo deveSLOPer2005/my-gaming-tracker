@@ -167,7 +167,7 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         <label for='status_select_id'>status: </label>
         <select id='status_select_id' name='status_select'>
-                <option value="" disabled selected>-</option>
+                <option value="" disabled selected hidden>-</option>
                 <option value='1' <?= (isset($games_to_edit) && $games_to_edit['status_id'] == 1) ? 'selected' : '' ?>>playing</option>
                 <option value='2' <?= (isset($games_to_edit) && $games_to_edit['status_id'] == 2) ? 'selected' : '' ?>>in plans</option>
                 <option value='3' <?= (isset($games_to_edit) && $games_to_edit['status_id'] == 3) ? 'selected' : '' ?>>abandoned</option>
