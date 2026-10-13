@@ -129,6 +129,7 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <link rel="stylesheet" href="water.css">
+<h1>my game tracker</h1> 
 
 <table border="1">
     <caption>games</caption>
@@ -156,17 +157,10 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </table>
 
 <?php
-// Если страница всего одна, кнопочки выводить не нужно
 if ($count_pages > 1) {
-    
-    // Цикл создаст ссылки от 1 до максимального количества страниц
     for ($i = 1; $i <= $count_pages; $i++) {
-        
-        // Выводим простую ссылку, разделяя цифры пробелами
         echo "<a href='index.php?page=$i&status_choice=$filter'> $i </a> ";
-        
     }
-    
 }
 ?>
 
@@ -182,6 +176,7 @@ if ($count_pages > 1) {
 <button type="submit">submit</button>
 </form>
 
+<h2 style="margin-top: 20px;">add/edit game</h2>
 <form action="index.php" method="post" style="margin-top: 20px;">
         <label for='game_name_id'>fill the form. </label>
 
@@ -193,7 +188,7 @@ if ($count_pages > 1) {
         <label for='game_name_id'>game name: </label>
         <input type="text" id="game_name_id" name="game_name" value="<?= isset($games_to_edit) ? htmlspecialchars($games_to_edit['title'], ENT_QUOTES, 'UTF-8') : '' ?>" required>
         
-        <label for='genre_select_id'>genre: </label>
+        <label for='genre_name_id'>genre: </label>
         <input type="text" id="genre_name_id" name="genre_name" value="<?= isset($games_to_edit) ? htmlspecialchars($games_to_edit['genre_name'], ENT_QUOTES, 'UTF-8') : '' ?>" required>
         
         <label for='status_select_id'>status: </label>
