@@ -1,4 +1,6 @@
-<?php require_once 'db.php';
+<?php
+require_once 'db.php';
+require_once 'functions.php';
 
 $filter = 'all';
 if (isset($_GET['status_choice']) && $_GET['status_choice'] !== '') {
@@ -7,24 +9,7 @@ if (isset($_GET['status_choice']) && $_GET['status_choice'] !== '') {
 
 if (isset($_POST['action']) && $_POST['action'] === 'create') {
     $new_game = $_POST['game_name'];
-    $genre_input = trim($_POST['genre_name']);
-    $genre_test_query = "SELECT id FROM genres WHERE genre = :genre;";
-    $stmt = $connection->prepare($genre_test_query);
-    $stmt->execute([
-        'genre' => $genre_input,
-    ]);
-    $genres = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($genres) {
-        $genre_id = $genres['id'];
-    }
-    else {
-        $new_genre_query = "INSERT INTO genres (genre) VALUES (:genre)";
-        $stmt = $connection->prepare($new_genre_query);
-        $stmt->execute([
-        'genre' => $genre_input,
-    ]);
-    $genre_id = $connection->lastInsertId();
-    }
+    $genre_id = get_or_create_genre($connection, $_POST['genre_name']);
     $new_status = (int)$_POST['status_select'];
     $add_sql_query = "INSERT INTO games (title, genre_id, status_id) VALUES (:title, :genre_id, :status_id);";
     $stmt = $connection->prepare($add_sql_query);
@@ -39,24 +24,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'create') {
 
 if (isset($_POST['action']) && $_POST['action'] === 'update') {
     $edited_game = $_POST['game_name'];
-    $genre_input = trim($_POST['genre_name']);
-    $genre_test_query = "SELECT id FROM genres WHERE genre = :genre;";
-    $stmt = $connection->prepare($genre_test_query);
-    $stmt->execute([
-        'genre' => $genre_input,
-    ]);
-    $genres = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($genres) {
-        $genre_id = $genres['id'];
-    }
-    else {
-        $new_genre_query = "INSERT INTO genres (genre) VALUES (:genre)";
-        $stmt = $connection->prepare($new_genre_query);
-        $stmt->execute([
-        'genre' => $genre_input,
-    ]);
-    $genre_id = $connection->lastInsertId();
-    }
+    $genre_id = get_or_create_genre($connection, $_POST['genre_name']);
     $edited_status = (int)$_POST['status_select'];
     $edit_id = (int)$_POST['game_id'];
     $edit_sql_query = "UPDATE games SET title = :title, genre_id = :genre_id, status_id = :status_id WHERE id = :id;";
