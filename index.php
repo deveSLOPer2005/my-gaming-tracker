@@ -66,6 +66,9 @@ if (isset($_GET['page']) && (int)$_GET['page'] > 0 ) {
 $limit = 3;
 $offset = ($page - 1) * $limit;
 
+$offset = (int)$offset;
+$limit = (int)$limit;
+
 $connection_sql_query = "SELECT 
                         g.id AS game_id,
                         g.title AS game_title,
