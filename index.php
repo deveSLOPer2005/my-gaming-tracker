@@ -146,7 +146,7 @@ if ($count_pages > 1) {
 
 <h2 style="margin-top: 20px;">add/edit game</h2>
 <form action="index.php" method="post" style="margin-top: 20px;">
-        <label for='game_name_id'>fill the form. </label>
+        <p>fill the form below:</p>
 
         <input type="hidden" name="action" value="<?= isset($_GET['edit_id']) ? 'update' : 'create' ?>">
         <?php if (isset($_GET['edit_id'])): ?>
