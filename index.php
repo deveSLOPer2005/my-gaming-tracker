@@ -8,33 +8,43 @@ if (isset($_GET['status_choice']) && $_GET['status_choice'] !== '') {
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'create') {
-    $new_game = $_POST['game_name'];
-    $genre_id = get_or_create_genre($connection, $_POST['genre_name']);
-    $new_status = (int)$_POST['status_select'];
-    $add_sql_query = "INSERT INTO games (title, genre_id, status_id) VALUES (:title, :genre_id, :status_id);";
-    $stmt = $connection->prepare($add_sql_query);
-    $stmt->execute([
-        'title' => $new_game,
-        'genre_id' => $genre_id,
-        'status_id' => $new_status
-    ]);
+
+    $new_game = trim($_POST['game_name'] ?? '');
+    $genre_name = trim($_POST['genre_name'] ?? '');
+    $new_status = (int)($_POST['status_select'] ?? 0);
+
+    if ($new_game !== '' && $genre_name !== '' && $new_status !== 0) {
+        $genre_id = get_or_create_genre($connection, $genre_name);
+        $add_sql_query = "INSERT INTO games (title, genre_id, status_id) VALUES (:title, :genre_id, :status_id);";
+        $stmt = $connection->prepare($add_sql_query);
+        $stmt->execute([
+            'title' => $new_game,
+            'genre_id' => $genre_id,
+            'status_id' => $new_status
+        ]);
+    }
     header("Location: index.php");
     exit;
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'update') {
-    $edited_game = $_POST['game_name'];
-    $genre_id = get_or_create_genre($connection, $_POST['genre_name']);
-    $edited_status = (int)$_POST['status_select'];
-    $edit_id = (int)$_POST['game_id'];
-    $edit_sql_query = "UPDATE games SET title = :title, genre_id = :genre_id, status_id = :status_id WHERE id = :id;";
-    $stmt = $connection->prepare($edit_sql_query);
-    $stmt->execute([
-        'title' => $edited_game,
-        'genre_id' => $genre_id,
-        'status_id' => $edited_status,
-        'id' => $edit_id
-    ]);
+
+    $edited_game = trim($_POST['game_name'] ?? '');
+    $genre_name = trim($_POST['genre_name'] ?? '');
+    $edited_status = (int)($_POST['status_select'] ?? 0);
+
+    if ($edited_game !== '' && $genre_name !== '' && $edited_status !== 0) {
+        $genre_id = get_or_create_genre($connection, $genre_name);
+        $edit_id = (int)$_POST['game_id'];
+        $edit_sql_query = "UPDATE games SET title = :title, genre_id = :genre_id, status_id = :status_id WHERE id = :id;";
+        $stmt = $connection->prepare($edit_sql_query);
+        $stmt->execute([
+            'title' => $edited_game,
+            'genre_id' => $genre_id,
+            'status_id' => $edited_status,
+            'id' => $edit_id
+        ]);
+    }
     header("Location: index.php");
     exit;
 }

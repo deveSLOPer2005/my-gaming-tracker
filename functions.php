@@ -2,6 +2,9 @@
 
 function get_or_create_genre($connection, $genre_name) {
     $genre_input = trim($genre_name);
+    if ($genre_input === '') {
+        return null; 
+    }
     $genre_test_query = "SELECT id FROM genres WHERE genre = :genre;";
     $stmt = $connection->prepare($genre_test_query);
     $stmt->execute([
@@ -16,6 +19,5 @@ function get_or_create_genre($connection, $genre_name) {
     $stmt->execute([
         'genre' => $genre_input,
     ]);
-
     return $connection->lastInsertId();
 }
