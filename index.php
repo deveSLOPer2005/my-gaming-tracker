@@ -1,4 +1,7 @@
 <?php
+session_start();
+$_SESSION['user_id'] = 1;
+
 require_once 'db.php';
 require_once 'functions.php';
 
@@ -15,12 +18,13 @@ if (isset($_POST['action']) && $_POST['action'] === 'create') {
 
     if ($new_game !== '' && $genre_name !== '' && $new_status !== 0) {
         $genre_id = get_or_create_genre($connection, $genre_name);
-        $add_sql_query = "INSERT INTO games (title, genre_id, status_id) VALUES (:title, :genre_id, :status_id);";
+        $add_sql_query = "INSERT INTO games (title, genre_id, status_id, user_id) VALUES (:title, :genre_id, :status_id, :user_id);";
         $stmt = $connection->prepare($add_sql_query);
         $stmt->execute([
             'title' => $new_game,
             'genre_id' => $genre_id,
-            'status_id' => $new_status
+            'status_id' => $new_status,
+            'user_id' => (int)$_SESSION['user_id']
         ]);
     }
     header("Location: index.php");
@@ -36,13 +40,14 @@ if (isset($_POST['action']) && $_POST['action'] === 'update') {
     if ($edited_game !== '' && $genre_name !== '' && $edited_status !== 0) {
         $genre_id = get_or_create_genre($connection, $genre_name);
         $edit_id = (int)$_POST['game_id'];
-        $edit_sql_query = "UPDATE games SET title = :title, genre_id = :genre_id, status_id = :status_id WHERE id = :id;";
+        $edit_sql_query = "UPDATE games SET title = :title, genre_id = :genre_id, status_id = :status_id WHERE id = :id AND user_id = :user_id;";
         $stmt = $connection->prepare($edit_sql_query);
         $stmt->execute([
             'title' => $edited_game,
             'genre_id' => $genre_id,
             'status_id' => $edited_status,
-            'id' => $edit_id
+            'id' => $edit_id,
+            'user_id' => (int)$_SESSION['user_id']
         ]);
     }
     header("Location: index.php");
@@ -51,9 +56,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'update') {
 
 if (isset($_POST['action']) && $_POST['action'] === 'delete') {
     $delete_id = (int)$_POST['delete_id'];
-    $delete_sql_query = "DELETE FROM games WHERE id = :id;";
+    $delete_sql_query = "DELETE FROM games WHERE id = :id AND user_id = :user_id;";
     $stmt = $connection->prepare($delete_sql_query);
-    $stmt->execute(['id' => $delete_id]);
+    $stmt->execute([
+        'id' => $delete_id,
+        'user_id' => (int)$_SESSION['user_id']
+    ]);
     header("Location: index.php");
     exit;
 }
@@ -63,9 +71,12 @@ if (isset($_GET['edit_id'])) {
     $data_edit_query = "SELECT g.*, gn.genre AS genre_name
                         from games g
                         INNER JOIN genres gn ON g.genre_id = gn.id
-                        WHERE g.id = :id;";
+                        WHERE g.id = :id AND user_id = :user_id;";
     $stmt = $connection->prepare($data_edit_query);
-    $stmt->execute(['id' => $edit_id]);
+    $stmt->execute([
+        'id' => $edit_id,
+        'user_id' => (int)$_SESSION['user_id']
+    ]);
     $games_to_edit = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
@@ -86,15 +97,19 @@ $connection_sql_query = "SELECT
                         gn.genre
                         FROM games g
                         INNER JOIN game_statuses s ON g.status_id = s.id
-                        INNER JOIN genres gn ON g.genre_id = gn.id";
+                        INNER JOIN genres gn ON g.genre_id = gn.id
+                        WHERE g.user_id = :user_id";
 
 $page_count_query = "SELECT COUNT(*) FROM games g 
-                    INNER JOIN game_statuses s ON g.status_id = s.id";
+                    INNER JOIN game_statuses s ON g.status_id = s.id
+                    WHERE g.user_id = :user_id";
 
-$params = [];
+$params = [
+    'user_id' => (int)$_SESSION['user_id']
+];
 if ($filter !== 'all') {
-    $connection_sql_query .= " WHERE s.game_status = :status";
-    $page_count_query .= " WHERE s.game_status = :status";
+    $connection_sql_query .= " AND s.game_status = :status";
+    $page_count_query .= " AND s.game_status = :status";
     $params['status'] = $filter;
 }
 
