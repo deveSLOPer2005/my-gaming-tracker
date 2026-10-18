@@ -5,6 +5,20 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+if (isset($_POST['action']) && $_POST['action'] === 'logout') {
+    $_SESSION = array();
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+        );
+    }
+    session_destroy();
+    header("Location: login.php");
+    exit;
+}
+
 require_once 'db.php';
 require_once 'functions.php';
 
@@ -124,7 +138,6 @@ $connection_sql_query .= " ORDER BY g.id OFFSET $offset ROWS FETCH NEXT $limit R
 $stmt = $connection->prepare($connection_sql_query);
 $stmt->execute($params);
 $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <!DOCTYPE html>
@@ -207,5 +220,9 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </select>
                 <button type="submit">submit</button>
         </form>
+        <form action="index.php" method="post">
+        <input type="hidden" name="action" value="logout">
+        <button type="submit">logout</button>
+    </form>
     </body>
 </html>
