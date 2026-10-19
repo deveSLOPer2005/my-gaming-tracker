@@ -20,6 +20,27 @@ if (isset($_POST['action']) && $_POST['action'] === 'logout') {
 }
 
 require_once 'db.php';
+
+if (isset($_POST['action']) && $_POST['action'] === 'delete account') {
+    $delete_games_query = "DELETE FROM games WHERE user_id = :user_id;";
+    $stmt_games = $connection->prepare($delete_games_query);
+    $stmt_games->execute(['user_id' => (int)$_SESSION['user_id']]);
+    $delete_account_query = 'DELETE FROM users WHERE id = :id;';
+    $stmt = $connection->prepare($delete_account_query);
+    $stmt->execute(['id' => $_SESSION['user_id']]);
+    $_SESSION = array();
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+        );
+    }
+    session_destroy();
+    header("Location: login.php");
+    exit;
+}
+
 require_once 'functions.php';
 
 $filter = 'all';
@@ -223,6 +244,8 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <form action="index.php" method="post">
         <input type="hidden" name="action" value="logout">
         <button type="submit">logout</button>
-    </form>
+        <input type="hidden" name="action" value="delete account">
+        <button type="submit">delete account</button>
+        </form>
     </body>
 </html>

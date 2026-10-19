@@ -5,8 +5,7 @@ $database = "my_gaming";
 try {
     $connection = new PDO("sqlsrv:server=$serverName;Database=$database", null, null);
     $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
-} catch (PDOException $e) {
-    echo "<h2>база данных НЕ подключена:</h2>";
-    echo "<p style='color:red;'>" . $e->getMessage() . "</p>";
-}
+    $connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        die("database connection error. try later");
+    }
