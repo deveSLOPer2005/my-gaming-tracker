@@ -20,14 +20,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'logout') {
 }
 
 require_once 'db.php';
+require_once 'functions.php';
 
 if (isset($_POST['action']) && $_POST['action'] === 'delete account') {
-    $delete_games_query = "DELETE FROM games WHERE user_id = :user_id;";
-    $stmt_games = $connection->prepare($delete_games_query);
-    $stmt_games->execute(['user_id' => (int)$_SESSION['user_id']]);
-    $delete_account_query = 'DELETE FROM users WHERE id = :id;';
-    $stmt = $connection->prepare($delete_account_query);
-    $stmt->execute(['id' => $_SESSION['user_id']]);
+    delete_account($connection, $_SESSION['user_id']);
     $_SESSION = array();
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();
@@ -41,81 +37,32 @@ if (isset($_POST['action']) && $_POST['action'] === 'delete account') {
     exit;
 }
 
-require_once 'functions.php';
-
 $filter = 'all';
 if (isset($_GET['status_choice']) && $_GET['status_choice'] !== '') {
     $filter = $_GET['status_choice'];
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'create') {
-
-    $new_game = trim($_POST['game_name'] ?? '');
-    $genre_name = trim($_POST['genre_name'] ?? '');
-    $new_status = (int)($_POST['status_select'] ?? 0);
-
-    if ($new_game !== '' && $genre_name !== '' && $new_status !== 0) {
-        $genre_id = get_or_create_genre($connection, $genre_name);
-        $add_sql_query = "INSERT INTO games (title, genre_id, status_id, user_id) VALUES (:title, :genre_id, :status_id, :user_id);";
-        $stmt = $connection->prepare($add_sql_query);
-        $stmt->execute([
-            'title' => $new_game,
-            'genre_id' => $genre_id,
-            'status_id' => $new_status,
-            'user_id' => (int)$_SESSION['user_id']
-        ]);
-    }
+    create_game($connection, $_SESSION['user_id'], $_POST['game_name'], $_POST['genre_name'], $_POST['status_select']);
     header("Location: index.php");
     exit;
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'update') {
-
-    $edited_game = trim($_POST['game_name'] ?? '');
-    $genre_name = trim($_POST['genre_name'] ?? '');
-    $edited_status = (int)($_POST['status_select'] ?? 0);
-
-    if ($edited_game !== '' && $genre_name !== '' && $edited_status !== 0) {
-        $genre_id = get_or_create_genre($connection, $genre_name);
-        $edit_id = (int)$_POST['game_id'];
-        $edit_sql_query = "UPDATE games SET title = :title, genre_id = :genre_id, status_id = :status_id WHERE id = :id AND user_id = :user_id;";
-        $stmt = $connection->prepare($edit_sql_query);
-        $stmt->execute([
-            'title' => $edited_game,
-            'genre_id' => $genre_id,
-            'status_id' => $edited_status,
-            'id' => $edit_id,
-            'user_id' => (int)$_SESSION['user_id']
-        ]);
-    }
+    update_game($connection, $_SESSION['user_id'], $_POST['game_id'], $_POST['game_name'], $_POST['genre_name'], $_POST['status_select']);
     header("Location: index.php");
     exit;
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'delete') {
-    $delete_id = (int)$_POST['delete_id'];
-    $delete_sql_query = "DELETE FROM games WHERE id = :id AND user_id = :user_id;";
-    $stmt = $connection->prepare($delete_sql_query);
-    $stmt->execute([
-        'id' => $delete_id,
-        'user_id' => (int)$_SESSION['user_id']
-    ]);
+    delete_game($connection, $_POST['delete_id'], $_SESSION['user_id']);
     header("Location: index.php");
     exit;
 }
 
+$games_to_edit = null;
 if (isset($_GET['edit_id'])) {
-    $edit_id = (int)$_GET['edit_id'];
-    $data_edit_query = "SELECT g.*, gn.genre AS genre_name
-                        from games g
-                        INNER JOIN genres gn ON g.genre_id = gn.id
-                        WHERE g.id = :id AND user_id = :user_id;";
-    $stmt = $connection->prepare($data_edit_query);
-    $stmt->execute([
-        'id' => $edit_id,
-        'user_id' => (int)$_SESSION['user_id']
-    ]);
-    $games_to_edit = $stmt->fetch(PDO::FETCH_ASSOC);
+    $games_to_edit = get_game_to_edit($connection, $_GET['edit_id'], $_SESSION['user_id']);
 }
 
 $page = 1;
@@ -244,6 +191,8 @@ $my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <form action="index.php" method="post">
         <input type="hidden" name="action" value="logout">
         <button type="submit">logout</button>
+        </form>
+        <form action="index.php" method="post">
         <input type="hidden" name="action" value="delete account">
         <button type="submit">delete account</button>
         </form>
