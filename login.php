@@ -7,46 +7,32 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 
+require_once 'functions/db_users.php';
+
 if (isset($_POST['action']) && $_POST['action'] === 'login') {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+        $user = user_login($connection, $_POST['username'], $_POST['password']);
 
-    if ($username !== '' && $password !== '') {
-        $password_query = "SELECT id, password_hash FROM users WHERE username = :username;";
-        $stmt = $connection->prepare($password_query);
-        $stmt->execute(['username' => $username]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user && password_verify($password, $user['password_hash'])) {
+        if ($user) {
             $_SESSION['user_id'] = $user['id'];
-
             header("Location: index.php");
             exit;
         } else {
 
             echo "<p>wrong login or password</p>";
         }
-    }
 }
 
 if (isset($_POST['action']) && $_POST['action'] === 'register') {
-    $username = trim($_POST['username'] ?? '');
-    $password = trim($_POST['password'] ?? '');
-
-    if ($username !== '' && $password !== '') {
-        $register_query = "INSERT INTO users(username, password_hash) VALUES (:username, :password_hash);";
-        $stmt = $connection->prepare($register_query);
-        $stmt->execute([
-            'username' => $username,
-            'password_hash' => password_hash($password, PASSWORD_DEFAULT)
-            ]);
-        $_SESSION['flash_message'] = "registration complete! now login";
-        header("Location: login.php");
-        exit;
-        }
-        else {
-            echo "<p>error! enter correct username/login to sign up</p>";
+        $success_register = user_register($connection, $_POST['username'], $_POST['password']);
+        
+        if ($success_register) {
+            $_SESSION['flash_message'] = "registration complete! now login";
+            header("Location: login.php");
+            exit;
             }
+            else {
+                echo "<p>error! enter correct username/login to sign up</p>";
+                }
 }
 ?>
 
