@@ -20,7 +20,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'logout') {
 }
 
 require_once 'db.php';
-require_once 'functions.php';
+require_once 'functions/db_users.php';
+require_once 'functions/db_games.php';
+require_once 'functions/functions.php';
 
 if (isset($_POST['action']) && $_POST['action'] === 'delete account') {
     delete_account($connection, $_SESSION['user_id']);
@@ -69,43 +71,14 @@ $page = 1;
 if (isset($_GET['page']) && (int)$_GET['page'] > 0 ) {
     $page = (int)$_GET['page'];
 }
+
 $limit = 3;
 $offset = ($page - 1) * $limit;
-
 $offset = (int)$offset;
 $limit = (int)$limit;
 
-$connection_sql_query = "SELECT 
-                        g.id AS game_id,
-                        g.title AS game_title,
-                        s.game_status,
-                        gn.genre
-                        FROM games g
-                        INNER JOIN game_statuses s ON g.status_id = s.id
-                        INNER JOIN genres gn ON g.genre_id = gn.id
-                        WHERE g.user_id = :user_id";
-
-$page_count_query = "SELECT COUNT(*) FROM games g 
-                    INNER JOIN game_statuses s ON g.status_id = s.id
-                    WHERE g.user_id = :user_id";
-
-$params = [
-    'user_id' => (int)$_SESSION['user_id']
-];
-if ($filter !== 'all') {
-    $connection_sql_query .= " AND s.game_status = :status";
-    $page_count_query .= " AND s.game_status = :status";
-    $params['status'] = $filter;
-}
-
-$stmt_count = $connection->prepare($page_count_query);
-$stmt_count->execute($params);
-$count_games = $stmt_count->fetchColumn();
-$count_pages = ceil($count_games / $limit); 
-$connection_sql_query .= " ORDER BY g.id OFFSET $offset ROWS FETCH NEXT $limit ROWS ONLY;";
-$stmt = $connection->prepare($connection_sql_query);
-$stmt->execute($params);
-$my_games = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$count_pages = get_games_pages_count($connection, $_SESSION['user_id'], $filter, $limit);
+$my_games = get_games_list($connection, $_SESSION['user_id'], $filter, $offset, $limit);
 ?>
 
 <!DOCTYPE html>
