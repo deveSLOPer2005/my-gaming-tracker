@@ -1,9 +1,12 @@
 <?php
-$serverName = "localhost"; 
+$serverName = "host.docker.internal"; 
 $database = "my_gaming";
+$username = "gamer123";
+$password = "mygamingtracker123";
 
 try {
-    $connection = new PDO("sqlsrv:server=$serverName;Database=$database", null, null);
+    $dsn = "sqlsrv:server=$serverName;Database=$database;Encrypt=0;TrustServerCertificate=1";
+    $connection = new PDO($dsn, $username, $password);
     $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
